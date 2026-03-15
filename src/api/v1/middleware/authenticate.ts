@@ -48,15 +48,23 @@ const authenticate = async (
         next();
     } catch (error: unknown) {
         if (error instanceof AuthenticationError) {
-            // Re-throw authentication errors to be handled by error middleware
             next(error);
         } else if (error instanceof Error) {
-            next(
-                new AuthenticationError(
-                    `Unauthorized: ${getErrorMessage(error)}`,
-                    getErrorCode(error)
-                )
-            );
+            const firebaseError = error as any;
+
+            if (firebaseError.code === 'auth/id-token-expired' ||
+                error.message.includes('token expired') ||
+                error.message.includes('expired')) {
+                next(new AuthenticationError(
+                    "Unauthorized: Token expired",
+                    "TOKEN_EXPIRED"
+                ));
+            } else {
+                next(new AuthenticationError(
+                    "Unauthorized: Invalid token",
+                    "TOKEN_INVALID"
+                ));
+            }
         } else {
             next(
                 new AuthenticationError(
