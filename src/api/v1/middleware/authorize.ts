@@ -3,7 +3,6 @@ import { Request, Response, NextFunction } from "express";
 
 // Internal module imports
 import { AuthorizationOptions } from "../models/authorizationOptions";
-import { MiddlewareFunction } from "../types/expressTypes";
 import { AuthorizationError } from "../errors/errors";
 
 /**
@@ -18,7 +17,7 @@ import { AuthorizationError } from "../errors/errors";
  * @param {AuthorizationOptions} opts - The authorization options.
  * @returns {MiddlewareFunction} The middleware function.
  */
-const isAuthorized = (opts: AuthorizationOptions): MiddlewareFunction => {
+const isAuthorized = (opts: AuthorizationOptions) => {
     return (req: Request, res: Response, next: NextFunction) => {
         try {
             const { role, uid } = res.locals;
