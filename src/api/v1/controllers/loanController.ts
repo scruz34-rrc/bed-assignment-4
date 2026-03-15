@@ -10,12 +10,11 @@ export const getAllLoansHandler = async (
     next: NextFunction
 ): Promise<void> => {
     try {
-        res.status(HTTP_STATUS.OK).json(
-            successResponse(
-                loans,
-                "Loan applications retrieved"
-            )
-        );
+        res.status(HTTP_STATUS.OK).json({
+            message: "Loan applications retrieved",
+            count: loans.length,
+            data: loans
+        });
     }
     
     catch (error) {
@@ -42,12 +41,55 @@ export const getLoanByIdHandler = async (
             );
         }
         
-        res.status(HTTP_STATUS.OK).json(
-            successResponse(
-                loan,
-                "Loan application retrieved"
-            )
-        );
+        res.status(HTTP_STATUS.OK).json({
+            message: "Loan application retrieved",
+            data: loan
+        });
+    }
+    
+    catch (error) {
+        next(error);
+    }
+};
+
+export const createLoanHandler = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+): Promise<void> => {
+    try {
+        const { applicant, amount } = req.body;
+        
+        if (!applicant || !amount) {
+            throw new ServiceError(
+                "Applicant name and amount are required",
+                "MISSING_FIELDS",
+                HTTP_STATUS.BAD_REQUEST
+            );
+        }
+        
+        if (typeof amount !== 'number' || amount <= 0) {
+            throw new ServiceError(
+                "Amount must be a positive number",
+                "INVALID_AMOUNT",
+                HTTP_STATUS.BAD_REQUEST
+            );
+        }
+        
+        const newLoan: Loan = {
+            id: loans.length + 1,
+            applicant,
+            amount,
+            status: "pending",
+            createdAt: new Date().toISOString()
+        };
+        
+        loans.push(newLoan);
+        
+        res.status(HTTP_STATUS.CREATED).json({
+            message: "Loan application created",
+            data: newLoan
+        });
     }
     
     catch (error) {
