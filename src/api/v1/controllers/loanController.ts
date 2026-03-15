@@ -151,3 +151,35 @@ export const updateLoanHandler = async (
         next(error);
     }
 };
+
+export const deleteLoanHandler = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+): Promise<void> => {
+    try {
+        const { id } = req.params;
+        const loanId = parseInt(id);
+        
+        const loanIndex = loans.findIndex(l => l.id === loanId);
+        
+        if (loanIndex === -1) {
+            throw new ServiceError(
+                `Loan with ID ${id} not found`,
+                "LOAN_NOT_FOUND",
+                HTTP_STATUS.NOT_FOUND
+            );
+        }
+        
+        loans.splice(loanIndex, 1);
+        
+        res.status(HTTP_STATUS.OK).json({
+            message: "Loan application deleted"
+        });
+        return;
+    }
+    
+    catch (error) {
+        next(error);
+    }
+};
