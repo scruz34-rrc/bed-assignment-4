@@ -1,6 +1,5 @@
 import { Request, Response, NextFunction } from "express";
 import { loans, Loan } from "../models/loanModel";
-import { successResponse } from "../models/responseModel";
 import { HTTP_STATUS } from "../../../constants/httpConstants";
 import { ServiceError } from "../errors/errors";
 
@@ -68,7 +67,7 @@ export const createLoanHandler = async (
             );
         }
         
-        if (typeof amount !== 'number' || amount <= 0) {
+        if (typeof amount !== "number" || amount <= 0) {
             throw new ServiceError(
                 "Amount must be a positive number",
                 "INVALID_AMOUNT",
@@ -89,6 +88,62 @@ export const createLoanHandler = async (
         res.status(HTTP_STATUS.CREATED).json({
             message: "Loan application created",
             data: newLoan
+        });
+    }
+    
+    catch (error) {
+        next(error);
+    }
+};
+
+export const updateLoanHandler = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+): Promise<void> => {
+    try {
+        const { id } = req.params;
+        const { applicant, amount, status } = req.body;
+        const loanId = parseInt(id);
+        
+        const loanIndex = loans.findIndex(l => l.id === loanId);
+        
+        if (loanIndex === -1) {
+            throw new ServiceError(
+                `Loan with ID ${id} not found`,
+                "LOAN_NOT_FOUND",
+                HTTP_STATUS.NOT_FOUND
+            );
+        }
+        
+        if (status && !["pending", "under_review", "approved", "rejected", "flagged"].includes(status)) {
+            throw new ServiceError(
+                "Invalid status value",
+                "INVALID_STATUS",
+                HTTP_STATUS.BAD_REQUEST
+            );
+        }
+        
+        if (amount !== undefined && (typeof amount !== "number" || amount <= 0)) {
+            throw new ServiceError(
+                "Amount must be a positive number",
+                "INVALID_AMOUNT",
+                HTTP_STATUS.BAD_REQUEST
+            );
+        }
+        
+        const updatedLoan: Loan = {
+            ...loans[loanIndex],
+            applicant: applicant || loans[loanIndex].applicant,
+            amount: amount !== undefined ? amount : loans[loanIndex].amount,
+            status: status || loans[loanIndex].status
+        };
+        
+        loans[loanIndex] = updatedLoan;
+        
+        res.status(HTTP_STATUS.OK).json({
+            message: "Loan application updated",
+            data: updatedLoan
         });
     }
     
