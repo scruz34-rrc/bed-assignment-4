@@ -16,7 +16,41 @@ export const getAllLoansHandler = async (
                 "Loan applications retrieved"
             )
         );
-    } catch (error) {
+    }
+    
+    catch (error) {
+        next(error);
+    }
+};
+
+export const getLoanByIdHandler = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+): Promise<void> => {
+    try {
+        const { id } = req.params;
+        const loanId = parseInt(id);
+        
+        const loan = loans.find(l => l.id === loanId);
+        
+        if (!loan) {
+            throw new ServiceError(
+                `Loan with ID ${id} not found`,
+                "LOAN_NOT_FOUND",
+                HTTP_STATUS.NOT_FOUND
+            );
+        }
+        
+        res.status(HTTP_STATUS.OK).json(
+            successResponse(
+                loan,
+                "Loan application retrieved"
+            )
+        );
+    }
+    
+    catch (error) {
         next(error);
     }
 };
